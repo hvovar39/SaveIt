@@ -2,47 +2,71 @@
 
 # Save with rsync on an external disk
 
-# Get information from template file
-DIRECTORIES=$(cat config.json | jq ".DIRECTORIES[]" --raw-output)
-BACKUP_PATH=$(cat config.json | jq ".BACKUP_PATH" --raw-output)
+# Color variables
+red=$(tput setaf 1)
+reset=$(tput sgr0)
 
-for file in $DIRECTORIES
-do
-    	echo "[+] Saving $file ...
+# Get information from template file
+function get_config () {
+directories=$(cat config_test.json | jq ".DIRECTORIES[]" --raw-output)
+backup_path=$(cat config_test.json | jq ".BACKUP_PATH" --raw-output)
+}
+
+# Try to save file in $1 in the backup_path
+function save_user_files() {
+	local file=$1
+	printf "[+] Saving "${file}" ...
 "
-    	if [ -d "$file" ]
-    	then
-        	OUTPUT=$(echo "$file" | awk -F "/" 'NF{OFS="/";NF-=1};1')
-        	rsync -avh --mkpath $file $BACKUP_PATH$OUTPUT --delete
-    	else
-    	    	rsync -avh --mkpath $file $BACKUP_PATH$file --delete
-    	fi
-	exit=$?
-    	if [ $exit -eq 0 ]
-	then
-	   	echo "[+][+] $file saved !
+	if [ -d ""${file}"" ]
+    then
+       	local output=$(printf ""${file}"" | awk -F "/" 'NF{OFS="/";NF-=1};1')
+       	rsync -avh --mkpath "${file}" "${backup_path}""${output}" --delete
+    else
+       	rsync -avh --mkpath "${file}" "${backup_path}""${file}" --delete
+    fi
+}
+
+# Try to save file in $1 in the backup_path throught sudo
+function save_privileged_files() {
+	local file=$1
+	printf "!!! "${file}" could not be save, retrying with sudo !!!"
+	printf "[+] Saving "${file}" ...
 "
-	elif [ $exit -eq 23 ]
-	then
-		echo "!!! $file could not be save, retrying with sudo !!!"
-		echo "[+] Saving $file ...
-"
-    		if [ -d "$file" ]
-   		then
-        		OUTPUT=$(echo "$file" | awk -F "/" 'NF{OFS="/";NF-=1};1')
-        		sudo rsync -avh --mkpath $file $BACKUP_PATH$OUTPUT --delete
-    		else
-    		    	sudo rsync -avh --mkpath $file $BACKUP_PATH$file --delete
-    		fi
-    		if [ $? -eq 0 ]
+ 	if [ -d ""${file}"" ]
+   	then
+    	local output=$(printf ""${file}"" | awk -F "/" 'NF{OFS="/";NF-=1};1')
+        sudo rsync -avh --mkpath "${file}" "${backup_path}""${output}" --delete
+    else
+       	sudo rsync -avh --mkpath "${file}" "${backup_path}""${file}" --delete
+    fi
+    
+}
+
+# Write the error message on stderr
+function error() {
+	printf "${red}!!! %s${reset}\n" "${*}" 1>&2
+}
+
+function main(){
+	get_config
+	for file in ${directories}
+	do
+		save_user_files "${file}"
+		if [ $? -eq 0 ]
 		then
-			echo "[+][+] $file saved !
-"
+		   	printf "[+][+] "${file}" saved !\n"
+		else
+			save_privileged_files "${file}"
+			if [ $? -eq 0 ]
+			then
+				printf "[+][+] "${file}" saved !\n"
+			else
+				error "exit $? "${file}" could not be saved"
+				exit 1
+			fi
 		fi
-	else
-		echo "exit $exit"
-		echo "!!! $file could not be saved !!!
-"
-	fi
-done
-exit 0
+	done
+	exit 0
+}
+
+main
