@@ -10,8 +10,16 @@ reset=$(tput sgr0)
 
 # Get information from template file
 function get_config () {
-	directories=$(cat config_test.json | jq ".DIRECTORIES[]" --raw-output)
-	backup_path=$(cat config_test.json | jq ".BACKUP_PATH" --raw-output)
+	local config_file="${1}"
+	if [[ -f "${config_file}" ]]
+	then
+		printf "${green}[+]Config file \""${config_file}"\" loaded.\n\n${reset}"
+	else
+		printf "${red}[+]Config file \""${config_file}"\" couldn't be found.\n${reset}"
+		exit
+	fi
+	directories=$(cat "${config_file}" | jq ".DIRECTORIES[]" --raw-output)
+	backup_path=$(cat "${config_file}" | jq ".BACKUP_PATH" --raw-output)
 }
 
 # Try to save src ($1) in dst ($2)
@@ -84,12 +92,12 @@ function main(){
 		sync_user_files "${src}" "${dst}"
 		if [ $? -eq 0 ]
 		then
-		   	printf "${green}[+][+] "${file}" saved !\n${reset}"
+		   	printf "${green}[+][+] "${file}" saved !\n\n${reset}"
 		else
 			sync_privileged_files "${src}" "${dst}"
 			if [ $? -eq 0 ]
 			then
-				printf "${green}[+][+] "${file}" saved !\n${reset}"
+				printf "${green}[+][+] "${file}" saved !\n\n${reset}"
 			else
 				error "exit $? "${file}" could not be saved"
 				exit 1
