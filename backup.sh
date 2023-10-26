@@ -62,9 +62,6 @@ function main(){
 	then
 		print_help
 		exit
-	else
-		printf "fail !!"
-		exit
 	fi
 	get_config "${2}"
 	local flag="${1}"
