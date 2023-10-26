@@ -47,9 +47,27 @@ function error() {
 	printf "${red}!!! %s${reset}\n" "${*}" 1>&2
 }
 
+function print_help() {
+   # Display Help
+   printf "Saveit is a backup management tool, based on json templates.\n\n"
+   printf "Syntax: ./backup.sh [-h|b|r] backup_template.json\n"
+   printf "options:\n"
+   printf "h	Print this help.\n"
+   printf "b	Backup.\n"
+   printf "r 	Restore.\n"
+}
+
 function main(){
-	get_config
-	local flag=$1
+	if [[ $# != 2 || ( $# > 0 && $1 == "-h" )  ]]
+	then
+		print_help
+		exit
+	else
+		printf "fail !!"
+		exit
+	fi
+	get_config "${2}"
+	local flag="${1}"
 	for file in ${directories}
 	do
 		# Check backup flag (either backup or restore)
