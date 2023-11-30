@@ -1,0 +1,7 @@
+{
+    "BACKUP_PATH": "PATH_TO_THE_BACKUP_DEVICE",
+    "DIRECTORIES": [
+        "PATH_TO_FILE",
+        "PATH_TO_DIRECORY"
+    ]
+}

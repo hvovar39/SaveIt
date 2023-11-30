@@ -58,7 +58,7 @@ function error() {
 function print_help() {
    # Display Help
    printf "Saveit is a backup management tool, based on json templates.\n\n"
-   printf "Syntax: ./backup.sh [-h] backup_template.json\n"
+   printf "Syntax: ./restore.sh [-h] backup_template.json\n"
    printf "options:\n"
    printf "   -h	Print this help.\n"
    printf "   backup_template.json is a template in json format. An example can be found in the file backup_template.json\n"
@@ -83,8 +83,8 @@ function main(){
 
 	for file in ${directories}
 	do
-		local src="${file}"
-		local dst="${backup_path}""${file}"
+		local src="${backup_path}""${file}"
+		local dst="${file}"
 	
 		# Try to sync as current user. If failed, try again as sudo.
 		sync_user_files "${src}" "${dst}"
